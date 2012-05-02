@@ -1,12 +1,1 @@
-[
-    {
-        "a": "listen", 
-        "event": "sys-event-start", 
-        "actions": [
-            {
-                "a": "print", 
-                "text": "Hello, DW!"
-            }
-        ]
-    }
-]
+[["listen", "sys-event-start", [["print", "Hello, DW!"]]]]

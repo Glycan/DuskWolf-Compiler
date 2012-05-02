@@ -11,18 +11,10 @@ class Compiler:
     Compiles DW code into JSON. Use .compile() followed by .write() if using
     auto=False.
     """
-    cmd_trans = {
-        "on": "listen",
-        "echo": "print"
-    }
-    cmds = {
-        "listen": ["event"],
-        "comment": ["text"],
-        "var": ["name", "value"],
-        "print": ["text"]
-    }
+    from langdef import cmd_trans, cmds
 
-    def __init__(self, name, auto=True):
+    def __init__(self, name, auto=True, encoding="dict"):
+        self.encoding=encoding
         self.source = open(name).read()
         self.name = name
         if auto:
@@ -49,8 +41,12 @@ class Compiler:
                     #strip trailling :
                     container = self.compile_line(lineno, line)
                     block_stack[-1].append(container)
-                    container["actions"] = []
-                    block_stack.append(container["actions"])
+                    actions = []
+                    try:
+                        container["actions"] = actions
+                    except TypeError:
+                        container.append(actions)
+                    block_stack.append(actions)
                 else:
                     block_stack[-1].append(self.compile_line(lineno, line))
 
@@ -60,7 +56,12 @@ class Compiler:
         if cmd in self.cmd_trans:
             cmd = self.cmd_trans[cmd]
             #this handles neater aliases
-        return self.compile_action(cmd, args)
+        if cmd in self.cmds:
+            argnames = self.cmds[cmd]
+            action = self.encodings[self.encoding](cmd, args, argnames)
+            return action
+        else:
+            raise Exception("No such cmd")
 
     def check_indent(self, line):
         new_indent_level = 0
@@ -72,20 +73,29 @@ class Compiler:
             raise Exception("Bad indent in source at line " + str(lineno))
         return new_indent_level
 
-    def compile_action(self, cmd, args):
-        if cmd in self.cmds:
-            argnames = self.cmds[cmd]
-            action = dict(zip(argnames, args))
-            action["a"] = cmd
+    def write(self, f=None, pretty=True):
+        if not f:
+            name = self.name.split(".")[0] + ".json"
+            f = open(name, "w")
+        if pretty:
+            json.dump(self.output, f, indent=4)
         else:
-            raise Exception("No such command")
+            json.dump(self.output, f)
+
+    def dict_encoding(cmd, args, argnames):
+        action = dict(zip(argnames, args))
+        action["a"] = cmd
         return action
 
-    def write(self):
-        compiled_name = self.name.split(".")[0] + ".json"
-        json.dump(self.output, open(compiled_name, "w"), indent=4)
+    def list_encoding(cmd, args, argnames):
+        action = [cmd] + args
+        return action
+
+    encodings = {"dict": dict_encoding, "list": list_encoding}
 
 if len(sys.argv) > 1:
     Compiler(sys.argv[1])
 else:
-    Compiler("hello.dw")
+    c = Compiler("hello.dw", encoding="list", auto=False)
+    c.compile()
+    c.write(pretty=False)
