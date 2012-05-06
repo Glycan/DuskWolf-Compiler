@@ -1,1 +1,1 @@
-[["listen", "sys-event-start", [["print", "Hello, DW!"]]]]
+[{"a": "set", "name": "a", "value": "10"}, {"a": "set", "name": "b", "value": "7"}, {"a": "print", "text": "z"}]

@@ -12,9 +12,10 @@ class Compiler:
     auto=False.
     """
     from langdef import cmd_trans, cmds
-
-    def __init__(self, name, auto=True, encoding="dict"):
-        self.encoding=encoding
+    params = {"encoding": "dict", "parens": True}
+    def __init__(self, name, auto=True, **params):
+        self.params.update(params)
+        self.encoding=self.params["encoding"]
         self.source = open(name).read()
         self.name = name
         if auto:
@@ -96,6 +97,6 @@ class Compiler:
 if len(sys.argv) > 1:
     Compiler(sys.argv[1])
 else:
-    c = Compiler("hello.dw", encoding="list", auto=False)
+    c = Compiler("hello.dw", auto=False)
     c.compile()
     c.write(pretty=False)

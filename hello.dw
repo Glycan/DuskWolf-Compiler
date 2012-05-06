@@ -1,2 +1,3 @@
-on sys-event-start:
-    print "Hello, DW!"
+set a 10
+set b 7
+print z
